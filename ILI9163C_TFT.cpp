@@ -135,16 +135,48 @@ void ILI9163C_TFT::set_pixel(uint16_t x, uint16_t y, uint16_t color)
 }
 
 
+void ILI9163C_TFT::draw_line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color)
+{
+  short dx = abs(x1 - x0);
+  short sx = x0 < x1 ? 1 : -1;
+
+  short dy = -abs(y1 - y0);
+  short sy = y0 < y1 ? 1 : -1;
+
+  short err = dx + dy;
+  short e2;
+
+  while (true)
+  {
+    this->set_pixel(x0, y0, color );
+    if (x0 == x1 && y0 == y1)
+      break;
+
+    e2 = 2 * err;
+    if (e2 >= dy)
+    {
+      err += dy;
+      x0 += sx;
+    }
+
+    if (e2 <= dx)
+    {
+      err += dx;
+      y0 += sy;
+    }
+  }
+}
+
 
 void ILI9163C_TFT::set_address(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1)
 {
   this->m_com(CMD_CLMADRS);
-  this->m_data16(x0);
-  this->m_data16(x1);
+  this->m_data16(x0 + this->OFFSET_X);
+  this->m_data16(x1 + this->OFFSET_X);
 
   this->m_com(CMD_PGEADRS);
-  this->m_data16(y0);
-  this->m_data16(y1);
+  this->m_data16(y0 + this->OFFSET_Y);
+  this->m_data16(y1 + this->OFFSET_Y);
 
   this->m_com(CMD_RAMWR);
 }

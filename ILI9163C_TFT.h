@@ -32,7 +32,10 @@ private:
   
 public:
   const uint8_t WIDTH = 128;
-  const uint8_t HEIGHT = 160;
+  const uint8_t HEIGHT = 128;
+
+  const uint8_t OFFSET_Y = 32;
+  const uint8_t OFFSET_X = 0;
   
   ILI9163C_TFT(uint8_t cspin, uint8_t rspin, uint8_t dcpin);
 
@@ -42,4 +45,5 @@ public:
 
   void fill_screen(uint16_t color);
   void set_pixel(uint16_t x, uint16_t y, uint16_t color);
+  void draw_line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color);
 };
