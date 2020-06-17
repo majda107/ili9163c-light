@@ -1,9 +1,9 @@
 #include "Arduino.h"
-#include "ILI9163_Commands.h"
-#include "ILI9163_Colors.h"
+#include "ILI9163C_Commands.h"
+#include "ILI9163C_Colors.h"
 #include <SPI.h>
 
-class ILI9163_TFT {
+class ILI9163C_TFT {
 private:
   uint8_t m_cspin;
   uint8_t m_rspin;
@@ -34,7 +34,7 @@ public:
   const uint8_t WIDTH = 128;
   const uint8_t HEIGHT = 160;
   
-  ILI9163_TFT(uint8_t cspin, uint8_t rspin, uint8_t dcpin);
+  ILI9163C_TFT(uint8_t cspin, uint8_t rspin, uint8_t dcpin);
 
   void start();
   

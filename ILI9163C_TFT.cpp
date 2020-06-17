@@ -1,13 +1,13 @@
-#include "ILI9163_TFT.h"
+#include "ILI9163C_TFT.h"
 
-ILI9163_TFT::ILI9163_TFT(uint8_t cspin, uint8_t rspin, uint8_t dcpin)
+ILI9163C_TFT::ILI9163C_TFT(uint8_t cspin, uint8_t rspin, uint8_t dcpin)
 {
   this->m_cspin = cspin;
   this->m_rspin = rspin;
   this->m_dcpin = dcpin;
 }
 
-void ILI9163_TFT::start()
+void ILI9163C_TFT::start()
 {
   pinMode(this->m_cspin, OUTPUT);
   pinMode(this->m_rspin, OUTPUT);
@@ -39,7 +39,7 @@ void ILI9163_TFT::start()
 }
 
 
-void ILI9163_TFT::m_chip()
+void ILI9163C_TFT::m_chip()
 {
   this->m_trans();
 
@@ -109,7 +109,7 @@ void ILI9163_TFT::m_chip()
 
 
 
-void ILI9163_TFT::fill_screen(uint16_t color) 
+void ILI9163C_TFT::fill_screen(uint16_t color) 
 {
   this->m_trans();
 
@@ -124,7 +124,7 @@ void ILI9163_TFT::fill_screen(uint16_t color)
 }
 
 
-void ILI9163_TFT::set_pixel(uint16_t x, uint16_t y, uint16_t color)
+void ILI9163C_TFT::set_pixel(uint16_t x, uint16_t y, uint16_t color)
 {
   this->m_trans();
   this->set_address(x, y, x+1, y+1);
@@ -136,7 +136,7 @@ void ILI9163_TFT::set_pixel(uint16_t x, uint16_t y, uint16_t color)
 
 
 
-void ILI9163_TFT::set_address(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1)
+void ILI9163C_TFT::set_address(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1)
 {
   this->m_com(CMD_CLMADRS);
   this->m_data16(x0);
@@ -151,22 +151,22 @@ void ILI9163_TFT::set_address(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1
 
 
 
-void ILI9163_TFT::m_trans() 
+void ILI9163C_TFT::m_trans() 
 {
   *(this->m_csport) &= ~(this->m_csmask);
 }
 
-void ILI9163_TFT::m_en_data() 
+void ILI9163C_TFT::m_en_data() 
 {
   *(this->m_rsport) |= this->m_rsmask;
 }
 
-void ILI9163_TFT::m_en_com() 
+void ILI9163C_TFT::m_en_com() 
 {
   *(this->m_rsport) &= ~(this->m_rsmask);
 }
 
-void ILI9163_TFT::m_dis_cs() 
+void ILI9163C_TFT::m_dis_cs() 
 {
   *(this->m_csport) |= this->m_csmask;
 }
@@ -175,25 +175,25 @@ void ILI9163_TFT::m_dis_cs()
 
 
 
-void ILI9163_TFT::m_spi(uint16_t c)
+void ILI9163C_TFT::m_spi(uint16_t c)
 {
   SPDR = c;
   while (!(SPSR & _BV(SPIF)));
 }
 
-void ILI9163_TFT::m_com(uint16_t c) 
+void ILI9163C_TFT::m_com(uint16_t c) 
 {
   this->m_en_com();
   this->m_spi(c);
 }
 
-void ILI9163_TFT::m_data(uint8_t d) 
+void ILI9163C_TFT::m_data(uint8_t d) 
 {
   this->m_en_data();
   this->m_spi(d);
 }
 
-void ILI9163_TFT::m_data16(uint16_t d) 
+void ILI9163C_TFT::m_data16(uint16_t d) 
 {
   this->m_en_data();
   this->m_spi(d >> 8);
