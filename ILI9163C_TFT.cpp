@@ -135,7 +135,7 @@ void ILI9163C_TFT::set_pixel(uint16_t x, uint16_t y, uint16_t color)
 }
 
 
-void ILI9163C_TFT::draw_line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color)
+void ILI9163C_TFT::draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color)
 {
   short dx = abs(x1 - x0);
   short sx = x0 < x1 ? 1 : -1;

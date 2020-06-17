@@ -25,8 +25,10 @@ void loop() {
   if(mov > 128)
     mov = 100;
 
-  tft.draw_line(0, 0, 70, mov, WHITE);
-  tft.draw_line(0, 0, mov, 70, WHITE);
+  //tft.draw_line(0, 0, 70, mov, WHITE);
+  //tft.draw_line(0, 0, mov, 70, WHITE);
+
+  tft.draw_line(100, 0, 0, 100, WHITE);
 
   delay(30);
 }
