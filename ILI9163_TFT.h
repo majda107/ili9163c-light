@@ -37,6 +37,9 @@ public:
   ILI9163_TFT(uint8_t cspin, uint8_t rspin, uint8_t dcpin);
 
   void start();
-  void fill_screen(uint16_t color);
+  
   void set_address(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
+
+  void fill_screen(uint16_t color);
+  void set_pixel(uint16_t x, uint16_t y, uint16_t color);
 };

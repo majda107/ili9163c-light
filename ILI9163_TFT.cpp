@@ -123,6 +123,19 @@ void ILI9163_TFT::fill_screen(uint16_t color)
   this->m_dis_cs();
 }
 
+
+void ILI9163_TFT::set_pixel(uint16_t x, uint16_t y, uint16_t color)
+{
+  this->m_trans();
+  this->set_address(x, y, x+1, y+1);
+  
+  this->m_en_data();
+  this->m_data16(color);
+  this->m_dis_cs();
+}
+
+
+
 void ILI9163_TFT::set_address(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1)
 {
   this->m_com(CMD_CLMADRS);

@@ -13,6 +13,11 @@ void setup() {
 void loop() {
 
   tft.fill_screen(RED);
-  tft.fill_screen(BLUE);
-  
+  //tft.fill_screen(BLUE);
+
+  for(int x = 0; x < 20; x++)
+    for(int y = 0; y < 20; y++)
+      tft.set_pixel(x + 100, y + 100, WHITE);
+
+  delay(14);
 }
