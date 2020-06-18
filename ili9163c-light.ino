@@ -10,8 +10,6 @@ void setup() {
   tft.start();
 }
 
-int mov = 100;
-
 void loop() {
 
   tft.fill_screen(RED);
@@ -21,14 +19,12 @@ void loop() {
   //  for(int y = 0; y < 20; y++)
   //    tft.set_pixel(x + 80, y + 20, WHITE);
 
-  mov += 2;
-  if(mov > 128)
-    mov = 100;
-
   //tft.draw_line(0, 0, 70, mov, WHITE);
   //tft.draw_line(0, 0, mov, 70, WHITE);
 
-  tft.draw_line(100, 0, 0, 100, WHITE);
+  //tft.draw_line(100, 0, 0, 100, WHITE);
+
+  tft.draw_triangle(10, 10, 100, 10, 100, 100, WHITE);
 
   //delay(30);
 }

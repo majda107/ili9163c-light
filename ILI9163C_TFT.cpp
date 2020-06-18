@@ -141,6 +141,69 @@ void ILI9163C_TFT::set_pixel(uint16_t x, uint16_t y, uint16_t color)
   this->m_dis_cs();
 }
 
+void ILI9163C_TFT::draw_triangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color)
+{
+  if (y0 > y1) {
+    short tmp_x = x0;
+    short tmp_y = y0;
+
+    x0 = x1;
+    y0 = y1;
+
+    x1 = tmp_x;
+    y1 = tmp_y;
+  }
+  if (y1 > y2) {
+    short tmp_x = x1;
+    short tmp_y = y1;
+
+    x1 = x2;
+    y1 = y2;
+
+    x2 = tmp_x;
+    y2 = tmp_y;
+  }
+  if (y0 > y1) {
+    short tmp_x = x0;
+    short tmp_y = y0;
+
+    x0 = x1;
+    y0 = y1;
+
+    x1 = tmp_x;
+    y1 = tmp_y;
+  }
+
+  float dx1 = (y1 - y0) >= 0 ? (x1 - x0) / (float)(y1 - y0) : 0;
+  float dx2 = (y2 - y0) >= 0 ? (x2 - x0) / (float)(y2 - y0) : 0;
+  float dx3 = (y2 - y1) >= 0 ? (x2 - x1) / (float)(y2 - y1) : 0; 
+
+  float sx = x0, ex = x0;
+  float sy = y0, ey = y0;
+  
+  if(dx1 > dx2) 
+  {
+    for(;sy <= y1; sy++, ey++, sx += dx2, ex += dx1)
+      this->fast_hline(sx, ex, sy, color);
+
+    ex = x1;
+    ey = y1;
+    
+    for(;sy <= y2; sy++, ey++, sx += dx2, ex += dx3)
+      this->fast_hline(sx, ex, sy, color);
+  } else 
+  {
+    for(;sy <= y1; sy++, ey++, ex += dx1, ex += dx2)
+      this->fast_hline(sx, ex, sy, color);
+
+    sx = x1;
+    sy = y1;
+    
+    for(;sy <= y2; sy++, ey++, sx += dx3, ex += dx2)
+      this->fast_hline(sx, ex, sy, color);
+  }
+}
+
 
 void ILI9163C_TFT::draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color)
 {
