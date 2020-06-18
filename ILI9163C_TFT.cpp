@@ -89,11 +89,18 @@ void ILI9163C_TFT::m_chip()
   this->m_data16(0X00);
   this->m_data16(180);
 
+
+  this->m_com(0x34); //tearing
+
   // set color mode
-  auto Mactrl = 0b00001000;
-  bitSet(Mactrl,3);
+  auto Madctl = 0b00001000;
+  bitSet(Madctl,3);
+  bitSet(Madctl,4);
   this->m_com(CMD_MADCTL);
-  this->m_data(Mactrl);
+  this->m_data(Madctl);
+  
+
+  
   
 
   this->m_com(CMD_DISPON); //display ON
@@ -166,6 +173,32 @@ void ILI9163C_TFT::draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uin
     }
   }
 }
+
+void ILI9163C_TFT::fast_hline(int16_t x0, int16_t x1, int16_t y, uint16_t color)
+{
+  this->m_trans();
+  this->set_address(x0, y, x1+1, y+1);
+  
+  this->m_en_data();
+  for(; x0 < x1; x0++)
+    this->m_data16(color);
+  
+  this->m_dis_cs();
+}
+
+
+void ILI9163C_TFT::fast_vline(int16_t y0, int16_t y1, int16_t x, uint16_t color)
+{
+  this->m_trans();
+  this->set_address(x, y0, x+1, y1+1);
+  
+  this->m_en_data();
+  for(; y0 < y1; y0++)
+    this->m_data16(color);
+  
+  this->m_dis_cs();
+}
+
 
 
 void ILI9163C_TFT::set_address(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1)

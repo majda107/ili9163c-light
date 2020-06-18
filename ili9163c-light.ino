@@ -30,5 +30,5 @@ void loop() {
 
   tft.draw_line(100, 0, 0, 100, WHITE);
 
-  delay(30);
+  //delay(30);
 }
