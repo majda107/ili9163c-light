@@ -184,23 +184,32 @@ void ILI9163C_TFT::draw_triangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
   if(dx1 > dx2) 
   {
     for(;sy <= y1; sy++, ey++, sx += dx2, ex += dx1)
+    {
       this->fast_hline(sx, ex, sy, color);
+    }
 
     ex = x1;
     ey = y1;
     
     for(;sy <= y2; sy++, ey++, sx += dx2, ex += dx3)
+    {
       this->fast_hline(sx, ex, sy, color);
+    }
+      
   } else 
   {
-    for(;sy <= y1; sy++, ey++, ex += dx1, ex += dx2)
+    for(;sy <= y1; sy++, ey++, sx += dx1, ex += dx2)
+    {
       this->fast_hline(sx, ex, sy, color);
+    }
 
     sx = x1;
     sy = y1;
     
     for(;sy <= y2; sy++, ey++, sx += dx3, ex += dx2)
+    {
       this->fast_hline(sx, ex, sy, color);
+    }
   }
 }
 

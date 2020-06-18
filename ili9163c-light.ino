@@ -24,6 +24,7 @@ void loop() {
 
   //tft.draw_line(100, 0, 0, 100, WHITE);
 
+  //tft.draw_triangle(50, 50, 100, 80, 10, 10, WHITE);
   tft.draw_triangle(10, 10, 100, 10, 100, 100, WHITE);
 
   //delay(30);
