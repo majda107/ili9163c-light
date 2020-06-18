@@ -174,6 +174,7 @@ void ILI9163C_TFT::draw_triangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
     y1 = tmp_y;
   }
 
+  /*
   float dx1 = (y1 - y0) >= 0 ? (x1 - x0) / (float)(y1 - y0) : 0;
   float dx2 = (y2 - y0) >= 0 ? (x2 - x0) / (float)(y2 - y0) : 0;
   float dx3 = (y2 - y1) >= 0 ? (x2 - x1) / (float)(y2 - y1) : 0; 
@@ -210,6 +211,72 @@ void ILI9163C_TFT::draw_triangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
     {
       this->fast_hline(sx, ex, sy, color);
     }
+  }
+  */
+
+
+  // stolen from https://github.com/adafruit/Adafruit-GFX-Library/blob/master/Adafruit_GFX.cpp, may perform slower than algorithm above
+  // but fixes the issue with blank lines (float imperfection)
+  
+  int16_t a, b, y, last;
+
+  if (y0 == y2) { // Handle awkward all-on-same-line case as its own thing
+    a = b = x0;
+    if (x1 < a)
+      a = x1;
+    else if (x1 > b)
+      b = x1;
+    if (x2 < a)
+      a = x2;
+    else if (x2 > b)
+      b = x2;
+    this->fast_hline(a, b + 1, y0, color);
+    return;
+  }
+
+  int16_t dx01 = x1 - x0, dy01 = y1 - y0, dx02 = x2 - x0, dy02 = y2 - y0,
+          dx12 = x2 - x1, dy12 = y2 - y1;
+  int32_t sa = 0, sb = 0;
+
+
+  if (y1 == y2)
+    last = y1; // Include y1 scanline
+  else
+    last = y1 - 1; // Skip it
+
+  for (y = y0; y <= last; y++) {
+    a = x0 + sa / dy01;
+    b = x0 + sb / dy02;
+    sa += dx01;
+    sb += dx02;
+
+    if (a > b)
+    {
+      int16_t tmp_a = a;
+      a = b;
+      b = tmp_a;
+    }
+      
+    this->fast_hline(a, b + 1, y, color);
+  }
+
+
+  sa = (int32_t)dx12 * (y - y1);
+  sb = (int32_t)dx02 * (y - y0);
+  for (; y <= y2; y++) {
+    a = x1 + sa / dy12;
+    b = x0 + sb / dy02;
+    sa += dx12;
+    sb += dx02;
+   
+    if (a > b)
+    {
+      int16_t tmp_a = a;
+      a = b;
+      b = tmp_a;
+    }
+      
+    this->fast_hline(a, b + 1, y, color);
   }
 }
 
