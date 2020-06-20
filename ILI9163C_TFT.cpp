@@ -310,7 +310,7 @@ void ILI9163C_TFT::draw_triangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
 
 
 
-void ILI9163C_TFT::draw_triangle_buff(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color, byte (*buff)[128], byte buff_val)
+void ILI9163C_TFT::draw_triangle_buff(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color, uint8_t (*buff)[128], uint8_t buff_val)
 {
   if (y0 > y1) {
     short tmp_x = x0;
@@ -357,7 +357,7 @@ void ILI9163C_TFT::draw_triangle_buff(int16_t x0, int16_t y0, int16_t x1, int16_
       a = x2;
     else if (x2 > b)
       b = x2;
-    this->fast_hline_buff(a, b + 1, y0, color, buff, buff_val);
+    this->draw_line_buff(a, b + 1, y0, color, buff, buff_val);
     return;
   }
 
@@ -384,7 +384,7 @@ void ILI9163C_TFT::draw_triangle_buff(int16_t x0, int16_t y0, int16_t x1, int16_
       b = tmp_a;
     }
       
-    this->fast_hline_buff(a, b + 1, y, color, buff, buff_val);
+    this->draw_line_buff(a, b + 1, y, color, buff, buff_val);
   }
 
   // For lower part of triangle, find scanline crossings for segments
@@ -407,7 +407,7 @@ void ILI9163C_TFT::draw_triangle_buff(int16_t x0, int16_t y0, int16_t x1, int16_
       b = tmp_a;
     }
       
-    this->fast_hline_buff(a, b + 1, y, color, buff, buff_val);
+    this->draw_line_buff(a, b + 1, y, color, buff, buff_val);
   }  
 }
 
@@ -448,26 +448,25 @@ void ILI9163C_TFT::draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uin
 
 
 
-void ILI9163C_TFT::fast_hline_buff(int16_t x0, int16_t x1, int16_t y, uint16_t color, byte (*buff)[128], byte buff_val)
+void ILI9163C_TFT::draw_line_buff(int16_t x0, int16_t x1, int16_t y, uint16_t color, uint8_t (*buff)[128], uint8_t buff_val)
 {
   if(x0 < 0) x0 = 0;
   if(x1 > this->WIDTH) x1 = this->WIDTH;
   
   if(y < 0 || y > this->HEIGHT) return;
   
-  this->m_trans();
-  this->set_address(x0, y, x1+1, y+1);
-  
-  this->m_en_data();
   for(; x0 < x1; x0++)
   {
-    this->m_data16(color);
-    buff[x0][y] = buff_val;
+    
+    if((buff[x0][y] & 0xfe) == (buff_val & 0xfe))
+    {
+      buff[x0][y] = buff_val | 1 << 0; // set first bit to true (drawn);
+      continue;
+    } 
+
+    this->set_pixel(x0, y, color);
+    buff[x0][y] = buff_val | 1 << 0; // set first bit to true (drawn);
   }
-  
-  this->m_dis_cs();
-  
-  this->m_end_trans();
 }
 
 
