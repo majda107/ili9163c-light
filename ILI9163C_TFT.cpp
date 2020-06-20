@@ -1,5 +1,8 @@
 #include "ILI9163C_TFT.h"
 
+
+
+
 ILI9163C_TFT::ILI9163C_TFT(uint8_t cspin, uint8_t rspin, uint8_t dcpin)
 {
   this->m_cspin = cspin;
@@ -12,18 +15,27 @@ void ILI9163C_TFT::start()
   pinMode(this->m_cspin, OUTPUT);
   pinMode(this->m_rspin, OUTPUT);
 
-  this->m_csport = portOutputRegister(digitalPinToPort(this->m_cspin));
-  this->m_rsport = portOutputRegister(digitalPinToPort(this->m_rspin));
-
-  this->m_csmask = digitalPinToBitMask(this->m_cspin);
-  this->m_rsmask = digitalPinToBitMask(this->m_rspin);
-
+  
+  #if defined ESP8266
+  m_ILI9163CSPI = SPISettings(80000000, MSBFIRST, SPI_MODE0); //80MHz
+  
   // begin SPI
   SPI.begin();
-  SPI.setClockDivider(SPI_CLOCK_DIV2);
+  SPI.setClockDivider(4);
   SPI.setBitOrder(MSBFIRST);
   SPI.setDataMode(SPI_MODE0);
-
+  
+  GPIO_REG_WRITE(GPIO_OUT_W1TS_ADDRESS, pin_reg(this->m_cspin));
+  #else
+  this->m_csport = portOutputRegister(digitalPinToPort(this->m_cspin));
+  this->m_rsport = portOutputRegister(digitalPinToPort(this->m_rspin));
+  
+  this->m_csmask = digitalPinToBitMask(this->m_cspin);
+  this->m_rsmask = digitalPinToBitMask(this->m_rspin);
+  #endif
+  
+  
+  
   this->m_en_data();
 
   // reset display power
@@ -108,6 +120,8 @@ void ILI9163C_TFT::m_chip()
   this->m_com(CMD_RAMWR); //Memory Write
 
   delay(1);
+  
+  this->m_end_trans();
 
   // clear memory
   this->fill_screen(0x00);
@@ -128,6 +142,8 @@ void ILI9163C_TFT::fill_screen(uint16_t color)
     this->m_data16(color);
 
   this->m_dis_cs();
+  
+  this->m_end_trans();
 }
 
 
@@ -139,6 +155,8 @@ void ILI9163C_TFT::set_pixel(uint16_t x, uint16_t y, uint16_t color)
   this->m_en_data();
   this->m_data16(color);
   this->m_dis_cs();
+  
+  this->m_end_trans();
 }
 
 void ILI9163C_TFT::draw_triangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color)
@@ -213,11 +231,6 @@ void ILI9163C_TFT::draw_triangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
     }
   }
   */
-
-
-  // stolen from https://github.com/adafruit/Adafruit-GFX-Library/blob/master/Adafruit_GFX.cpp, may perform slower than algorithm above
-  // but fixes the issue with blank lines (float imperfection)
-  
   int16_t a, b, y, last;
 
   if (y0 == y2) { // Handle awkward all-on-same-line case as its own thing
@@ -238,7 +251,12 @@ void ILI9163C_TFT::draw_triangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
           dx12 = x2 - x1, dy12 = y2 - y1;
   int32_t sa = 0, sb = 0;
 
-
+  // For upper part of triangle, find scanline crossings for segments
+  // 0-1 and 0-2.  If y1=y2 (flat-bottomed triangle), the scanline y1
+  // is included here (and second loop will be skipped, avoiding a /0
+  // error there), otherwise scanline y1 is skipped here and handled
+  // in the second loop...which also avoids a /0 error here if y0=y1
+  // (flat-topped triangle).
   if (y1 == y2)
     last = y1; // Include y1 scanline
   else
@@ -249,7 +267,10 @@ void ILI9163C_TFT::draw_triangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
     b = x0 + sb / dy02;
     sa += dx01;
     sb += dx02;
-
+    /* longhand:
+    a = x0 + (x1 - x0) * (y - y0) / (y1 - y0);
+    b = x0 + (x2 - x0) * (y - y0) / (y2 - y0);
+    */
     if (a > b)
     {
       int16_t tmp_a = a;
@@ -260,7 +281,8 @@ void ILI9163C_TFT::draw_triangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
     this->fast_hline(a, b + 1, y, color);
   }
 
-
+  // For lower part of triangle, find scanline crossings for segments
+  // 0-2 and 1-2.  This loop is skipped if y1=y2.
   sa = (int32_t)dx12 * (y - y1);
   sb = (int32_t)dx02 * (y - y0);
   for (; y <= y2; y++) {
@@ -268,7 +290,10 @@ void ILI9163C_TFT::draw_triangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
     b = x0 + sb / dy02;
     sa += dx12;
     sb += dx02;
-   
+    /* longhand:
+    a = x1 + (x2 - x1) * (y - y1) / (y2 - y1);
+    b = x0 + (x2 - x0) * (y - y0) / (y2 - y0);
+    */
     if (a > b)
     {
       int16_t tmp_a = a;
@@ -323,6 +348,8 @@ void ILI9163C_TFT::fast_hline(int16_t x0, int16_t x1, int16_t y, uint16_t color)
     this->m_data16(color);
   
   this->m_dis_cs();
+  
+  this->m_end_trans();
 }
 
 
@@ -336,6 +363,8 @@ void ILI9163C_TFT::fast_vline(int16_t y0, int16_t y1, int16_t x, uint16_t color)
     this->m_data16(color);
   
   this->m_dis_cs();
+  
+  this->m_end_trans();
 }
 
 
@@ -355,6 +384,33 @@ void ILI9163C_TFT::set_address(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y
 
 
 
+#if defined(ESP8266)
+void ILI9163C_TFT::m_trans() 
+{
+	SPI.beginTransaction(m_ILI9163CSPI);
+	GPIO_REG_WRITE(GPIO_OUT_W1TC_ADDRESS, pin_reg(this->m_cspin));
+}
+
+void ILI9163C_TFT::m_en_data() 
+{
+	GPIO_REG_WRITE(GPIO_OUT_W1TS_ADDRESS, pin_reg(this->m_rspin));
+}
+
+void ILI9163C_TFT::m_en_com() 
+{
+	GPIO_REG_WRITE(GPIO_OUT_W1TC_ADDRESS, pin_reg(this->m_rspin));
+}
+
+void ILI9163C_TFT::m_dis_cs() 
+{
+	GPIO_REG_WRITE(GPIO_OUT_W1TS_ADDRESS, pin_reg(this->m_cspin));
+}
+
+void ILI9163C_TFT::m_end_trans() 
+{
+	SPI.endTransaction();
+}
+#else
 void ILI9163C_TFT::m_trans() 
 {
   *(this->m_csport) &= ~(this->m_csmask);
@@ -375,15 +431,30 @@ void ILI9163C_TFT::m_dis_cs()
   *(this->m_csport) |= this->m_csmask;
 }
 
+void ILI9163C_TFT::m_end_trans() 
+{
+	// nothing
+}
+#endif
 
 
 
 
+#if defined(ESP8266)
+void ILI9163C_TFT::m_spi(uint16_t c)
+{
+  SPI.write(c);
+}
+#else
 void ILI9163C_TFT::m_spi(uint16_t c)
 {
   SPDR = c;
   while (!(SPSR & _BV(SPIF)));
 }
+#endif
+
+
+
 
 void ILI9163C_TFT::m_com(uint16_t c) 
 {
@@ -397,9 +468,19 @@ void ILI9163C_TFT::m_data(uint8_t d)
   this->m_spi(d);
 }
 
+
+
+#if defined(ESP8266)
+void ILI9163C_TFT::m_data16(uint16_t d) 
+{
+  this->m_en_data();
+  SPI.write16(d);
+}
+#else
 void ILI9163C_TFT::m_data16(uint16_t d) 
 {
   this->m_en_data();
   this->m_spi(d >> 8);
   this->m_spi(d);
 }
+#endif

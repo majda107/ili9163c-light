@@ -3,20 +3,40 @@
 #include "ILI9163C_Colors.h"
 #include <SPI.h>
 
+#if defined(ESP8266)
+#include <eagle_soc.h>
+#endif
+
 class ILI9163C_TFT {
 private:
+
   uint8_t m_cspin;
   uint8_t m_rspin;
   uint8_t m_dcpin;
 
+  #if defined(ESP8266)
+  volatile uint32_t* m_csport;
+  volatile uint32_t* m_rsport;
+  
+  SPISettings m_ILI9163CSPI;
+  
+  uint32_t pin_reg(uint8_t pin)
+  {
+	return _BV(pin);
+  }
+  #else
   volatile uint8_t* m_csport;
   volatile uint8_t* m_rsport;
-
+  
   uint8_t m_csmask;
   uint8_t m_rsmask;
+  #endif
+
+  
 
   // data flow
   void m_trans();
+  void m_end_trans();
   void m_en_data();
   void m_en_com();
   void m_dis_cs();
