@@ -1,4 +1,4 @@
-#include "ILI9163C_TFT.h"
+cky#include "ILI9163C_TFT.h"
 
 #define __CS  10
 #define __RS  8

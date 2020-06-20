@@ -149,6 +149,9 @@ void ILI9163C_TFT::fill_screen(uint16_t color)
 
 void ILI9163C_TFT::set_pixel(uint16_t x, uint16_t y, uint16_t color)
 {
+  if(x < 0 || x > this->WIDTH) return;
+  if(y < 0 || y > this->HEIGHT) return;
+  
   this->m_trans();
   this->set_address(x, y, x+1, y+1);
   
@@ -340,6 +343,11 @@ void ILI9163C_TFT::draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uin
 
 void ILI9163C_TFT::fast_hline(int16_t x0, int16_t x1, int16_t y, uint16_t color)
 {
+  if(x0 < 0) x0 = 0;
+  if(x1 > this->WIDTH) x1 = this->WIDTH;
+  
+  if(y < 0 || y > this->HEIGHT) return;
+  
   this->m_trans();
   this->set_address(x0, y, x1+1, y+1);
   
