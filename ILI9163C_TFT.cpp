@@ -309,6 +309,111 @@ void ILI9163C_TFT::draw_triangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
 }
 
 
+
+void ILI9163C_TFT::draw_triangle_buff(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color, byte (*buff)[128], byte buff_val)
+{
+  if (y0 > y1) {
+    short tmp_x = x0;
+    short tmp_y = y0;
+
+    x0 = x1;
+    y0 = y1;
+
+    x1 = tmp_x;
+    y1 = tmp_y;
+  }
+  if (y1 > y2) {
+    short tmp_x = x1;
+    short tmp_y = y1;
+
+    x1 = x2;
+    y1 = y2;
+
+    x2 = tmp_x;
+    y2 = tmp_y;
+  }
+  if (y0 > y1) {
+    short tmp_x = x0;
+    short tmp_y = y0;
+
+    x0 = x1;
+    y0 = y1;
+
+    x1 = tmp_x;
+    y1 = tmp_y;
+  }
+
+
+  
+  int16_t a, b, y, last;
+
+  if (y0 == y2) { // Handle awkward all-on-same-line case as its own thing
+    a = b = x0;
+    if (x1 < a)
+      a = x1;
+    else if (x1 > b)
+      b = x1;
+    if (x2 < a)
+      a = x2;
+    else if (x2 > b)
+      b = x2;
+    this->fast_hline_buff(a, b + 1, y0, color, buff, buff_val);
+    return;
+  }
+
+  int16_t dx01 = x1 - x0, dy01 = y1 - y0, dx02 = x2 - x0, dy02 = y2 - y0,
+          dx12 = x2 - x1, dy12 = y2 - y1;
+  int32_t sa = 0, sb = 0;
+
+
+  if (y1 == y2)
+    last = y1; // Include y1 scanline
+  else
+    last = y1 - 1; // Skip it
+
+  for (y = y0; y <= last; y++) {
+    a = x0 + sa / dy01;
+    b = x0 + sb / dy02;
+    sa += dx01;
+    sb += dx02;
+
+    if (a > b)
+    {
+      int16_t tmp_a = a;
+      a = b;
+      b = tmp_a;
+    }
+      
+    this->fast_hline_buff(a, b + 1, y, color, buff, buff_val);
+  }
+
+  // For lower part of triangle, find scanline crossings for segments
+  // 0-2 and 1-2.  This loop is skipped if y1=y2.
+  sa = (int32_t)dx12 * (y - y1);
+  sb = (int32_t)dx02 * (y - y0);
+  for (; y <= y2; y++) {
+    a = x1 + sa / dy12;
+    b = x0 + sb / dy02;
+    sa += dx12;
+    sb += dx02;
+    /* longhand:
+    a = x1 + (x2 - x1) * (y - y1) / (y2 - y1);
+    b = x0 + (x2 - x0) * (y - y0) / (y2 - y0);
+    */
+    if (a > b)
+    {
+      int16_t tmp_a = a;
+      a = b;
+      b = tmp_a;
+    }
+      
+    this->fast_hline_buff(a, b + 1, y, color, buff, buff_val);
+  }  
+}
+
+
+
+
 void ILI9163C_TFT::draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color)
 {
   short dx = abs(x1 - x0);
@@ -340,6 +445,32 @@ void ILI9163C_TFT::draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uin
     }
   }
 }
+
+
+
+void ILI9163C_TFT::fast_hline_buff(int16_t x0, int16_t x1, int16_t y, uint16_t color, byte (*buff)[128], byte buff_val)
+{
+  if(x0 < 0) x0 = 0;
+  if(x1 > this->WIDTH) x1 = this->WIDTH;
+  
+  if(y < 0 || y > this->HEIGHT) return;
+  
+  this->m_trans();
+  this->set_address(x0, y, x1+1, y+1);
+  
+  this->m_en_data();
+  for(; x0 < x1; x0++)
+  {
+    this->m_data16(color);
+    buff[x0][y] = buff_val;
+  }
+  
+  this->m_dis_cs();
+  
+  this->m_end_trans();
+}
+
+
 
 void ILI9163C_TFT::fast_hline(int16_t x0, int16_t x1, int16_t y, uint16_t color)
 {
