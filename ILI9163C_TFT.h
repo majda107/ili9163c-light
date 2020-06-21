@@ -68,10 +68,13 @@ public:
   
   void draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color);
   void draw_line_buff(int16_t x0, int16_t x1, int16_t y, uint16_t color, uint8_t (*buff)[128], uint8_t buff_val);
+
+  void draw_line_z(int16_t x0, int16_t x1, int16_t y, int16_t z_left, int16_t z_right, uint16_t color, int8_t (*buff)[128]);
   
   void fast_hline(int16_t x0, int16_t x1, int16_t y, uint16_t color);  
   void fast_vline(int16_t y0, int16_t y1, int16_t x, uint16_t color);
 
   void draw_triangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color);
+  void draw_triangle_z(int16_t x0, int16_t y0, int16_t z0, int16_t x1, int16_t y1, int16_t z1, int16_t x2, int16_t y2,int16_t z2, uint16_t color, int8_t (*buff)[128]);
   void draw_triangle_buff(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color, uint8_t (*buff)[128], uint8_t buff_val);
 };
